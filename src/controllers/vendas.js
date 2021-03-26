@@ -1,5 +1,4 @@
-const { validateErr } = require('../helper/functions');
-const { getVendasByDate, getVendasByDateRange, getVendasForEachDateRange } = require('../models/vendas');
+const { getVendasByDate } = require('../models/vendas');
 
 async function vendasByDate(req, res) {
   try {
