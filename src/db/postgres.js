@@ -1,22 +1,42 @@
 const { Pool } = require('pg');
+const knex = require('knex').knex;
 const ping = require('ping');
 
 const { username, password, port, servers } = require('../config/config.json').database.postgres;
 
-async function connect(filial) {
-  if(!servers.includes(filial)) return { err: 'Filial não cadastrada' };
+async function connect(shop) {
+  if(!servers.includes(shop)) return { err: 'Filial não cadastrada' };
 
-  const { alive } = await ping.promise.probe(filial === 40 ? `192.168.${filial}.253` : `192.168.${filial}.254`);
+  const { alive } = await ping.promise.probe(shop === 40 ? `192.168.${shop}.253` : `192.168.${shop}.254`);
 
   if(!alive) return { err: 'Filial inacessível' };
 
   return new Pool({
-    host: filial === 40 ? `192.168.${filial}.253` : `192.168.${filial}.254`,
+    host: shop === 40 ? `192.168.${shop}.253` : `192.168.${shop}.254`,
     port: port,
     user: username,
     password: password,
-    database: filial === 40 ? `xavier` : filial < 10 ? `loja0${filial}` : `loja${filial}`
+    database: shop === 40 ? `xavier` : shop < 10 ? `loja0${shop}` : `loja${shop}`
   }).connect();
 };
 
-module.exports = connect;
+async function knexBuilder(shop) {
+  if(!servers.includes(shop)) return { err: 'Filial não cadastrada' };
+
+  const { alive } = await ping.promise.probe(shop === 40 ? `192.168.${shop}.253` : `192.168.${shop}.254`);
+
+  if(!alive) return { err: 'Filial inacessível' };
+
+  return knex({ 
+    client: 'pg',
+    connection: {
+      host: shop === 40 ? `192.168.${shop}.253` : `192.168.${shop}.254`,
+      user: username,
+      password: password,
+      database: shop === 40 ? `xavier` : shop < 10 ? `loja0${shop}` : `loja${shop}`,
+      port: port
+    }
+   })
+}
+
+module.exports = { connect, knexBuilder };
